@@ -39,7 +39,11 @@ class Game {
             let p1 = this.particles[i]
             for (let j = i + 1; j < this.particles.length; j++) {
                 let p2 = this.particles[j];
+
+                debugger
+
                 let force = { x: 0, y: 0, z: 0 };
+
 
                 force.x = g * p1.m * p2.m / ((p2.position.x - p1.position.x) ** 2);
                 force.y = g * p1.m * p2.m / ((p2.position.y - p1.position.y) ** 2);
@@ -49,17 +53,6 @@ class Game {
                 p1.animate(force, -1);
             }
         }
-
-
-        // this.particles.forEach((p2, j) => {
-        //     if (j !== 0) {
-        //         force.x += g*p1.m*p2.m/((p2.position.x - p1.position.x)**2);
-        //         force.y += g*p1.m*p2.m/((p2.position.y - p1.position.y)**2);
-        //         force.z += g*p1.m*p2.m/((p2.position.z - p1.position.z)**2);
-        //         p1.animate(force, -1);
-        //         p2.animate(force, 1);
-        //     }
-        // })
 
         this.renderer.render(this.scene, this.camera);
     }

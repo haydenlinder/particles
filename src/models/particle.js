@@ -1,7 +1,8 @@
 class Particle extends THREE.Mesh {
     constructor({ size, heat }){
-        const m = size * Math.random()**2;
-        const geometry = new THREE.SphereGeometry(m, 7, 3);
+        const mass = size * Math.random()**2;
+        const radius = 20*mass
+        const geometry = new THREE.SphereGeometry(radius, 7, 3);
         const material = new THREE.MeshBasicMaterial();
         super(geometry, material);
         const vertices =
@@ -12,8 +13,9 @@ class Particle extends THREE.Mesh {
                 })
             );
         this.add(vertices);
-
-        this.m = m;
+        
+        this.radius = radius
+        this.mass = mass;
         this.velocity = { 
             x: heat*(Math.random() - Math.random()),
             y: heat*(Math.random() - Math.random()),
@@ -21,10 +23,10 @@ class Particle extends THREE.Mesh {
         }
     }
 
-    animate(force, s) {
-        this.velocity.x += s*force.x/this.m;
-        this.velocity.y += s*force.y/this.m;
-        this.velocity.z += s*force.z/this.m;
+    animate(force = { x:0, y:0, z:0 }, s) {
+        this.velocity.x += s*force.x/this.mass;
+        this.velocity.y += s*force.y/this.mass;
+        this.velocity.z += s*force.z/this.mass;
         this.position.x += this.velocity.x;
         this.position.y += this.velocity.y;
         this.position.z += this.velocity.z;

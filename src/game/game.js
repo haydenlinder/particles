@@ -1,13 +1,14 @@
 import Particle from '../models/particle'
 
 class Game {
-    constructor() {
-        this.particles = []
-        for (let i = 0; i < 100; i++) {
-            let particle = new Particle();
-            particle.position.x = 5 * (Math.random() - Math.random());
-            particle.position.y = 5 * (Math.random() - Math.random());
-            particle.position.z = 5 * (Math.random() - Math.random());
+    constructor({ n, size, heat, spread, distance, gravity }) {
+        this.gravity = gravity;
+        this.particles = [];
+        for (let i = 0; i < n; i++) {
+            let particle = new Particle({ size: size, heat: heat });
+            particle.position.x = spread*(Math.random() - Math.random());
+            particle.position.y = spread*(Math.random() - Math.random());
+            particle.position.z = spread*(Math.random() - Math.random());
             this.particles.push(particle);
         }
 
@@ -20,25 +21,45 @@ class Game {
         );
         this.renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
 
-        this.camera.position.z = 5
+        this.camera.position.z = distance;
         this.renderer.setSize(window.innerWidth, window.innerHeight);
 
         document.body.appendChild(this.renderer.domElement);
-
         this.scene.add(...this.particles);
     }
 
     animate() {
         requestAnimationFrame(this.animate.bind(this));
-        this.particles.forEach(p1 => {
-            let f = { x: 0, y: 0, z: 0 };
-            this.particles.forEach(p2 => {
-                f.x += 1/((p2.x - p1.x)^2)
-                f.y += 1/((p2.y - p1.y)^2)
-                f.z += 1/((p2.z - p1.z)^2)
-            })
-            p1.animate(f)
-        })
+
+        let g = this.gravity;
+
+        // sorted = 
+
+        for (let i = 0; i < this.particles.length; i++) {
+            let p1 = this.particles[i]
+            for (let j = i + 1; j < this.particles.length; j++) {
+                let p2 = this.particles[j];
+                let force = { x: 0, y: 0, z: 0 };
+
+                force.x = g * p1.m * p2.m / ((p2.position.x - p1.position.x) ** 2);
+                force.y = g * p1.m * p2.m / ((p2.position.y - p1.position.y) ** 2);
+                force.z = g * p1.m * p2.m / ((p2.position.z - p1.position.z) ** 2);
+
+                p2.animate(force, 1);
+                p1.animate(force, -1);
+            }
+        }
+
+
+        // this.particles.forEach((p2, j) => {
+        //     if (j !== 0) {
+        //         force.x += g*p1.m*p2.m/((p2.position.x - p1.position.x)**2);
+        //         force.y += g*p1.m*p2.m/((p2.position.y - p1.position.y)**2);
+        //         force.z += g*p1.m*p2.m/((p2.position.z - p1.position.z)**2);
+        //         p1.animate(force, -1);
+        //         p2.animate(force, 1);
+        //     }
+        // })
 
         this.renderer.render(this.scene, this.camera);
     }

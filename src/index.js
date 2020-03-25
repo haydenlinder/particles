@@ -1,12 +1,12 @@
 import Game from './game/game'
 
 const game = new Game({
-    n: 1000, 
+    n: 100, 
     size: 1,
-    spread: 3000,
+    spread: 500,
     distance: 10000,
-    heat: 0.01,
-    gravity: -0.0000000000667408
+    heat: 0,
+    gravity: -0.00667408
 });
 
 game.animate();

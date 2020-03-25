@@ -1,7 +1,7 @@
 class Particle extends THREE.Mesh {
     constructor({ size, heat }){
-        const mass = size * Math.random()**2;
-        const radius = 20*mass;
+        const mass = size * Math.random()**4;
+        const radius = 100*mass**(1/3);
         const geometry = new THREE.SphereGeometry(radius, 10, 10);
         const material = new THREE.MeshBasicMaterial();
         super(geometry, material);
@@ -43,7 +43,26 @@ class Particle extends THREE.Mesh {
         this.velocity.z = velocity.z;
     }
 
-    animate(force = { x:0, y:0, z:0 }, s) {
+    move(force = { x:0, y:0, z:0 }, s) {
+        // if (this.position.x > 10*window.innerWidth){
+        //     this.position.x = -10*window.innerWidth;
+        // }
+        // if (this.position.x < -10*window.innerWidth){
+        //     this.position.x = 10*window.innerWidth;
+        // }
+        // if (this.position.y > 10*window.innerHeight){
+        //     this.position.y = -10*window.innerHeight;
+        // }
+        // if (this.position.y < -10*window.innerHeight){
+        //     this.position.y = 10*window.innderHeight;
+        // }
+        // if (this.position.z > 10000){
+        //     // this.position.z = 0;
+        // }
+        // if (this.position.z < 0){
+        //     // this.position.z = 10000;
+        // }
+
         this.velocity.x += s*force.x/this.mass;
         this.velocity.y += s*force.y/this.mass;
         this.velocity.z += s*force.z/this.mass;

@@ -1,10 +1,10 @@
 import Game from './game/game'
 
 const game = new Game({
-    n: 100, 
+    n: 1000, 
     size: 1,
-    spread: 500,
-    distance: 500,
+    spread: 3000,
+    distance: 10000,
     heat: 0.01,
     gravity: -0.0000000000667408
 });

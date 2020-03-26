@@ -1,20 +1,16 @@
-import Game from './game/game'
+import View from './view';
 
-const game = new Game({
-    n: 100, 
-    size: 1,
-    spread: 500,
-    distance: 10000,
-    heat: 0,
-    gravity: -0.00667408
+const view = new View({
+    distance: 10000, 
+    gameOptions: {
+        n: 500,
+        size: 1,
+        spread: 5000,
+        heat: 1,
+        gravity: -0.0000000000667408,
+    }
 });
 
-game.animate();
-const onWindowResize = () => {
-    game.camera.aspect = window.innerWidth / window.innerHeight;
-    game.camera.updateProjectionMatrix();
-    game.renderer.setSize(window.innerWidth, window.innerHeight)
-}
+view.animate();
 
-window.addEventListener('resize', onWindowResize, false)
 

@@ -1,0 +1,24 @@
+{
+  "name": "particles",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/haydenlinder/particles.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/haydenlinder/particles/issues"
+  },
+  "homepage": "https://github.com/haydenlinder/particles#readme",
+  "dependencies": {
+    "three": "^0.115.0",
+    "three-orbitcontrols": "^2.110.3"
+  }
+}

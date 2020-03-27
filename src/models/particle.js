@@ -1,134 +1,112 @@
 import * as THREE from 'three';
 
 class Particle extends THREE.Mesh {
-    constructor({ size, heat, game }){
-        const mass = size*(Math.random() + 0.3)**20;
-        const radius = 100*mass**(1/3);
-        const geometry = new THREE.SphereGeometry(radius, 10, 10);
+    constructor({ radius, density, heat, game }){
+        const mass = density * 4/3 * Math.PI * radius ** 3;
+
+        const geometry = new THREE.SphereGeometry(radius, 30, 30);
         const material = new THREE.MeshLambertMaterial({color: 'blue', emissiveIntensity: 10});
         super(geometry, material);
             
         this.siblings = game.scene.children
         this.game = game;
+        this.game.totalMass += this.mass
+
         this.radius = radius
         this.mass = mass;
-        this.velocity = { 
-            x: heat*(Math.random() - Math.random()),
-            y: heat*(Math.random() - Math.random()),
-            z: heat*(Math.random() - Math.random()),
-        }
-        setInterval(() => this.animate(), 1)
-    }
-
-    absorb(particle) {
-        this.mass += particle.mass;
-
-        let scale = particle.mass / this.mass;
-        this.scale.x += scale;
-        this.scale.y += scale;
-        this.scale.z += scale;
-
-        
-        let e = particle.mass / (this.mass + particle.mass);
-        let velocity = {
-            x: e*(particle.mass * particle.velocity.x + this.mass * this.velocity.x),
-            y: e*(particle.mass * particle.velocity.y + this.mass * this.velocity.y),
-            z: e*(particle.mass * particle.velocity.z + this.mass * this.velocity.z),
-            
-        }
-        this.velocity.y = velocity.y;
-        this.velocity.x = velocity.x;
-        this.velocity.z = velocity.z;
-
-        if (this.mass > 100) {
-            this.mass += 10000
-        }
-
-        this.game.scene.remove(particle)
-    }
-
-    nearest() {
-        let g = this.game.gravity;
-        return this.siblings.sort((p2, p3) => {
-
-            let dx2 = p2.position.x - this.position.x;
-            let dy2 = p2.position.y - this.position.y;
-            let dz2 = p2.position.z - this.position.z;
-            let d2 = Math.sqrt(dx2 ** 2 + dy2 ** 2 + dz2 ** 2);
-            let f2 = (g * p2.mass * this.mass) / d2 ** 2
-
-            let dx3 = p3.position.x - this.position.x;
-            let dy3 = p3.position.y - this.position.y;
-            let dz3 = p3.position.z - this.position.z;
-            let d3 = Math.sqrt(dx3 ** 2 + dy3 ** 2 + dz3 ** 2);
-            let f3 = (g * p2.mass * this.mass) / d3 ** 2
-
-            return f2 - f3;
-        }).slice(1);
+        this.density = density;
+        this.acceleration = new THREE.Vector3();
+        this.velocity = new THREE.Vector3(
+            heat*(Math.random() - Math.random()),
+            heat*(Math.random() - Math.random()),
+            heat*(Math.random() - Math.random()),
+        )
     }
 
     animate() {
-        // this.rotate();
+        this.siblings.forEach(p2 => {
+            if (this.uuid !== p2.uuid) {
+                let d = this.position.distanceTo(p2.position)
+                if (d <= this.radius + p2.radius) {
+                    this.mass > p2.mass ? this.absorb(p2) : p2.absorb(this)
+                } else {
+                    this.gravitate(p2)
+                }
+            }
+        });
+    }
 
-        if (this.mass > 2000) {
+    absorb(p2) {
+        let newMass = this.mass + p2.mass;
+        if (newMass > this.game.n/5 * this.game.size * this.game.density && !this.sun) {
             let light = new THREE.PointLight({
                 color: 'yellow',
                 intensity: 0.001,
-                decay: 3,
+                // distance: 2,
+                decay: 2
             });
-            this.material.color.set('yellow')
             this.add(light);
+            this.material.emissive.set('yellow')
+            this.density *= 1/4;
+            this.sun = true
+            let canvas = document.getElementsByTagName('canvas')
+            canvas[0].classList.add('light')
         }
-        // this.nearest().forEach(p2 => {
-        let netForce = { x: 0, y: 0, z: 0 }
-        this.siblings.forEach(p2 => {
-            if (this.uuid !== p2.uuid) {
+        
+        let newVelocity = new THREE.Vector3(
+            (this.velocity.x * this.mass + p2.velocity.x * p2.mass) / newMass,
+            (this.velocity.y * this.mass + p2.velocity.y * p2.mass) / newMass,
+            (this.velocity.z * this.mass + p2.velocity.z * p2.mass) / newMass
+        );
 
-                let dx = p2.position.x - this.position.x;
-                let dy = p2.position.y - this.position.y;
-                let dz = p2.position.z - this.position.z;
-                
-                let distance = Math.sqrt(dx ** 2 + dy ** 2 + dz ** 2);
+        let newPos = new THREE.Vector3(
+            (this.position.x * this.mass + p2.position.x * p2.mass) / newMass,
+            (this.position.y * this.mass + p2.position.y * p2.mass) / newMass,
+            (this.position.z * this.mass + p2.position.z * p2.mass) / newMass
+        );
+            
+        this.position.multiplyScalar(0)
+        this.position.add(newPos);
+        this.velocity = newVelocity
+        
+        let newRadius = (3 * newMass/4/this.density/Math.PI) ** (1/3)
+        this.scale.x *= newRadius/this.radius
+        this.scale.y *= newRadius/this.radius
+        this.scale.z *= newRadius/this.radius
+        
+        this.radius = newRadius;
+        this.mass = newMass;
+        this.game.scene.remove(p2)
+        this.move();
+    }
 
-                if (distance <  this.radius + p2.radius) {
+    gravitate(p2) {
+        let force = new THREE.Vector3().subVectors(this.position, p2.position);
+        let d = force.length();
+        if (d === 0) return;
+        let g = this.game.gravity
+        let dir = force.normalize();
+        let strength = - (g * this.mass * p2.mass) / (d * d);   
 
-                    let bigger = this.mass >= p2.mass ? this : p2;
-                    let smaller = this.mass < p2.mass ? this : p2;
-                    bigger.absorb(smaller);
+        force = dir.multiplyScalar(strength);
+        this.applyForce(force, -1);
+        this.accelerate();
+        this.move();
+    }
 
-                } else {
+    applyForce(force, dir) {
+        this.acceleration = (force.multiplyScalar(dir/this.mass))
+    }
 
-                    let g = this.game.gravity
-                    let force = {
-                        x: (g * this.mass * p2.mass) / Math.abs(dx)** 2,
-                        y: (g * this.mass * p2.mass) / Math.abs(dy)** 2,
-                        z: (g * this.mass * p2.mass) / Math.abs(dz)** 2,
-                    };
-                    netForce.x += force.x;
-                    netForce.y += force.y;
-                    netForce.z += force.z;
-
-                }
-            }
-            // p2.move(force, -1)
-        });
-        this.move(netForce, 1)
+    accelerate() {
+        this.velocity.add(this.acceleration);
+        this.acceleration.multiplyScalar(0);
     }
     
-    move(force = { x: 0, y: 0, z: 0 }, dir) {
-        this.velocity.x += dir*force.x/this.mass;
-        this.velocity.y += dir*force.y/this.mass;
-        this.velocity.z += dir*force.z/this.mass;
-        this.position.x += this.velocity.x;
-        this.position.y += this.velocity.y;
-        this.position.z += this.velocity.z;
+    move() {
+        this.position.add(this.velocity);
     }
 
-    rotate() {
-        this.rotateX(this.velocity.x);
-        this.rotateY(this.velocity.y);
-        this.rotateZ(this.velocity.z);
-    }
 }
 
 export default Particle;

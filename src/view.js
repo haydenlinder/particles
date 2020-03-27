@@ -25,6 +25,20 @@ class View {
         
         document.body.appendChild(this.renderer.domElement);
 
+
+        ///////////////////////
+        this.$real_framerate = $("#real_framerate");
+        this.$framerate = $("#framerate");
+        this.$framerate.bind("change keyup mouseup", function () {
+            var v = parseInt(this.value);
+            if (v > 0) {
+                //options.framerate = v;
+                renderInterval = 1000 / 100;
+            }
+        }).change();
+        this.lastRendered = new Date();
+        this.countFramesPerSecond = 0;
+        /////////////////////////
     }
 
     onWindowResize() {
@@ -36,7 +50,27 @@ class View {
     animate() {
         requestAnimationFrame(this.animate.bind(this));
         window.addEventListener('resize', this.onWindowResize(), false);
+        //////////////////////
+        this.render();
+        ///////////////////////
         this.renderer.render(this.scene, this.camera);
+    }
+
+    render() {
+        ///////////////////////////
+        let now = new Date();
+        if (this.lastRendered && now.getMilliseconds() < this.lastRendered.getMilliseconds()) {
+            this.$real_framerate.html(this.countFramesPerSecond);
+            this.countFramesPerSecond = 1;
+        } else {
+            this.countFramesPerSecond += 1;
+        }  
+
+        this.game.scene.children.forEach(child => {
+            child.animate();
+        })
+
+        this.lastRendered = new Date();
     }
 }
 

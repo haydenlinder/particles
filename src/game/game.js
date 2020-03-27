@@ -11,7 +11,7 @@ class Game {
         this.n = n;
         for (let i = 0; i < n; i++) {
             let particle = new Particle({ 
-                radius: size, //* (Math.random()),
+                radius: size* (Math.random()),
                 density: density,
                 heat: heat,
                 game: this 

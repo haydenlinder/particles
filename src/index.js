@@ -7,7 +7,7 @@ const view = new View({
         size: 1,
         spread: 30,
         heat: 0.005,
-        gravity: -0.00000667408,
+        gravity: -0.000000667408,
         density: 5520,
     }
 });

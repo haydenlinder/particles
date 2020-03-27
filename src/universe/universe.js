@@ -1,7 +1,7 @@
 import Particle from '../models/particle'
 import * as THREE from 'three';
 
-class Game {
+class Universe {
     constructor({ n, size, heat, density, spread, gravity, scene }) {
         this.gravity = gravity;
         this.scene = scene;
@@ -11,10 +11,10 @@ class Game {
         this.n = n;
         for (let i = 0; i < n; i++) {
             let particle = new Particle({ 
-                radius: size* (Math.random()),
+                radius: size * (Math.random() + 0.1)**10,
                 density: density,
                 heat: heat,
-                game: this 
+                universe: this 
             });
             particle.position.x = 5*spread *(Math.random() - Math.random()) //(Math.random() + Math.random()*10) * (-1) ** (Math.floor(Math.random() + 1.5)%2);
             particle.position.y = 3*spread *(Math.random() - Math.random()) //(Math.random() + Math.random()*10) * (-1) ** (Math.floor(Math.random() + 1.5)%2);
@@ -25,4 +25,4 @@ class Game {
     }
 }
 
-export default Game;
+export default Universe;

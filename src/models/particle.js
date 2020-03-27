@@ -1,16 +1,16 @@
 import * as THREE from 'three';
 
 class Particle extends THREE.Mesh {
-    constructor({ radius, density, heat, game }){
+    constructor({ radius, density, heat, universe }){
         const mass = density * 4/3 * Math.PI * radius ** 3;
 
         const geometry = new THREE.SphereGeometry(radius, 30, 30);
         const material = new THREE.MeshLambertMaterial({color: 'blue', emissiveIntensity: 10});
         super(geometry, material);
             
-        this.siblings = game.scene.children
-        this.game = game;
-        this.game.totalMass += this.mass
+        this.siblings = universe.scene.children
+        this.universe = universe;
+        this.universe.totalMass += this.mass
 
         this.radius = radius
         this.mass = mass;
@@ -38,7 +38,7 @@ class Particle extends THREE.Mesh {
 
     absorb(p2) {
         let newMass = this.mass + p2.mass;
-        if (newMass > this.game.n/5 * this.game.size * this.game.density && !this.sun) {
+        if (newMass > this.universe.n/5 * this.universe.size * this.universe.density && !this.sun) {
             let light = new THREE.PointLight({
                 color: 'yellow',
                 intensity: 0.001,
@@ -76,7 +76,7 @@ class Particle extends THREE.Mesh {
         
         this.radius = newRadius;
         this.mass = newMass;
-        this.game.scene.remove(p2)
+        this.universe.scene.remove(p2)
         this.move();
     }
 
@@ -84,7 +84,7 @@ class Particle extends THREE.Mesh {
         let force = new THREE.Vector3().subVectors(this.position, p2.position);
         let d = force.length();
         if (d === 0) return;
-        let g = this.game.gravity
+        let g = this.universe.gravity
         let dir = force.normalize();
         let strength = - (g * this.mass * p2.mass) / (d * d);   
 

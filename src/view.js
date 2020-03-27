@@ -1,10 +1,12 @@
-import Game from './game/game';
+import Universe from './universe/universe';
 import * as THREE from 'three';
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls"
 
 
 class View {
-    constructor({ distance, gameOptions }) {
+    constructor({ distance, universeOptions }) {
+        this.distance = distance;
+
         this.scene = new THREE.Scene();
         this.camera = new THREE.PerspectiveCamera(
             75,
@@ -20,7 +22,7 @@ class View {
         });
         this.renderer.setSize(window.innerWidth, window.innerHeight);
 
-        this.game = new Game({...gameOptions, scene: this.scene});
+        this.universe = new Universe({...universeOptions, scene: this.scene});
         this.controls = new OrbitControls(this.camera, this.renderer.domElement);
         
         document.body.appendChild(this.renderer.domElement);
@@ -66,7 +68,7 @@ class View {
             this.countFramesPerSecond += 1;
         }  
 
-        this.game.scene.children.forEach(child => {
+        this.universe.scene.children.forEach(child => {
             child.animate();
         })
 

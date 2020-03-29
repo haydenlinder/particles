@@ -5,15 +5,15 @@ class Particle extends THREE.Mesh {
         const mass = density * 4/3 * Math.PI * radius ** 3;
 
         const geometry = new THREE.SphereGeometry(radius, 30, 30);
-        const material = new THREE.MeshLambertMaterial({color: 'blue', emissiveIntensity: 10});
+        const material = new THREE.MeshPhongMaterial({ color: 0x33F9FF, shininess: 0})//, emissiveIntensity: 10});
         super(geometry, material);
             
         this.siblings = universe.scene.children
         this.universe = universe;
-        this.universe.totalMass += this.mass
+        this.universe.totalMass += mass
 
-        this.radius = radius
         this.mass = mass;
+        this.radius = radius
         this.density = density;
         this.acceleration = new THREE.Vector3();
         this.velocity = new THREE.Vector3(
@@ -37,20 +37,26 @@ class Particle extends THREE.Mesh {
     }
 
     absorb(p2) {
+        this.updateMass()
+        p2.updateMass()
         let newMass = this.mass + p2.mass;
-        if (newMass > this.universe.n/5 * this.universe.size * this.universe.density && !this.sun) {
-            let light = new THREE.PointLight({
-                color: 'yellow',
-                intensity: 0.001,
-                // distance: 2,
-                decay: 2
-            });
-            this.add(light);
-            this.material.emissive.set('yellow')
-            this.density *= 1/4;
-            this.sun = true
-            let canvas = document.getElementsByTagName('canvas')
-            canvas[0].classList.add('light')
+        if (newMass > 1000000){//this.universe.totalMass/3){
+            if (!this.sun) {
+                this.density *= 1/4;
+                this.material = new THREE.MeshBasicMaterial({color: 'yellow'})
+                let light = new THREE.PointLight({
+                    color: 'yellow',
+                    distance: 2,
+                    decay: 2
+                });
+                this.add(light);
+                // this.material.emissive.set('yellow')
+                this.sun = true
+                let canvas = document.getElementById('canvas')
+                
+                canvas.classList.add('light')
+            }
+            this.children[0].intensity = 0.0000005 * newMass;
         }
         
         let newVelocity = new THREE.Vector3(
@@ -81,10 +87,12 @@ class Particle extends THREE.Mesh {
     }
 
     gravitate(p2) {
+        this.updateMass();
+        p2.updateMass();
         let force = new THREE.Vector3().subVectors(this.position, p2.position);
         let d = force.length();
         if (d === 0) return;
-        let g = this.universe.gravity
+        let g = this.universe.gravity * -0.0000000000667408
         let dir = force.normalize();
         let strength = - (g * this.mass * p2.mass) / (d * d);   
 
@@ -106,7 +114,14 @@ class Particle extends THREE.Mesh {
     move() {
         this.position.add(this.velocity);
     }
-
+    
+    updateMass() {
+        if (this.sun) {
+            this.density = this.universe.density/4
+        } else {
+            this.density = this.universe.density
+        }
+    }
 }
 
 export default Particle;

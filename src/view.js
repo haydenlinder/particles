@@ -1,12 +1,15 @@
 import Universe from './universe/universe';
 import * as THREE from 'three';
-import { OrbitControls } from "three/examples/jsm/controls/OrbitControls"
-
+import * as OrbitControls from "three-orbitcontrols";
+// import FlyControls from './util/fly_controls'
+// const FlyControls = import('./util/fly_controls')(THREE)
+require('./util/fly_controls')
+import * as dat from 'dat.gui';
 
 class View {
     constructor({ distance, universeOptions }) {
         this.distance = distance;
-
+        this.universeOptions = universeOptions;
         this.scene = new THREE.Scene();
         this.camera = new THREE.PerspectiveCamera(
             75,
@@ -15,64 +18,75 @@ class View {
             300000
         );
         this.camera.position.z = distance;
+
+        this.canvas = document.getElementById('canvas');
+        let ctx = canvas.getContext('webgl');
+        ctx.clearColor(0, 0, 0.1, 0);
         this.renderer = new THREE.WebGLRenderer({ 
-            antialias: true, 
+            canvas: canvas,
+            canvas: canvas,
+            antialias: true,
             alpha: true,
             physicallyCorrectLights: true,
         });
-        this.renderer.setSize(window.innerWidth, window.innerHeight);
+        this.canvas.width = canvas.clientWidth;
+        this.canvas.height = canvas.clientHeight;
 
-        this.universe = new Universe({...universeOptions, scene: this.scene});
-        this.controls = new OrbitControls(this.camera, this.renderer.domElement);
+        this.renderer.setViewport(0, 0, canvas.clientWidth, canvas.clientHeight);
+        // this.controls = new OrbitControls(this.camera, this.renderer.domElement);
+        this.flyControls = new THREE.FlyControls(this.camera, this.renderer.domElement);
+        this.flyControls.dragToLook = true;
         
-        document.body.appendChild(this.renderer.domElement);
+        // debugger
+        
+        this.paused = false;
 
+        this.universe = new Universe({...universeOptions, scene: this.scene, view: this});
 
-        ///////////////////////
         this.$real_framerate = $("#real_framerate");
-        this.$framerate = $("#framerate");
-        this.$framerate.bind("change keyup mouseup", function () {
-            var v = parseInt(this.value);
-            if (v > 0) {
-                //options.framerate = v;
-                renderInterval = 1000 / 100;
-            }
-        }).change();
+
         this.lastRendered = new Date();
         this.countFramesPerSecond = 0;
-        /////////////////////////
     }
 
     onWindowResize() {
-        this.camera.aspect = window.innerWidth / window.innerHeight;
-        this.camera.updateProjectionMatrix();
-        this.renderer.setSize(window.innerWidth, window.innerHeight)
+        this.canvas.width = canvas.clientWidth;
+        this.canvas.height = canvas.clientHeight;
+        this.renderer.setViewport(0, 0, canvas.clientWidth, canvas.clientHeight);
+        this.camera.aspect = canvas.clientWidth / canvas.clientHeight;
+        this.camera.updateMatrix();
     }
 
     animate() {
         requestAnimationFrame(this.animate.bind(this));
         window.addEventListener('resize', this.onWindowResize(), false);
-        //////////////////////
         this.render();
-        ///////////////////////
+        this.flyControls.update(1);
         this.renderer.render(this.scene, this.camera);
     }
 
+    pause () {
+        this.paused = this.paused ? false : true
+    }
+
     render() {
-        ///////////////////////////
-        let now = new Date();
-        if (this.lastRendered && now.getMilliseconds() < this.lastRendered.getMilliseconds()) {
-            this.$real_framerate.html(this.countFramesPerSecond);
-            this.countFramesPerSecond = 1;
-        } else {
-            this.countFramesPerSecond += 1;
-        }  
+        if (!this.paused) {
 
-        this.universe.scene.children.forEach(child => {
-            child.animate();
-        })
-
-        this.lastRendered = new Date();
+            let now = new Date();
+            if (this.lastRendered && now.getMilliseconds() < this.lastRendered.getMilliseconds()) {
+                this.$real_framerate.html(this.countFramesPerSecond);
+                this.countFramesPerSecond = 1;
+            } else {
+                this.countFramesPerSecond += 1;
+            }  
+    
+            this.universe.scene.children.forEach(child => {
+                child.animate();
+                child.updateMass();
+            })
+    
+            this.lastRendered = new Date();
+        }
     }
 }
 

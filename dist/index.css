@@ -1,9 +1,24 @@
+body {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    color: white;
+    background-color: black;
+}
+
 canvas {
-    background: rgb(44, 44, 44);
-    height: 500px;
-    width: 800px;
+    background-color: rgb(199, 199, 199);
+    height: 80vh;
+    width: 90vw;
 }
 
 canvas.light {
-    background-color: rgb(44, 44, 44);
+    background-color: rgb(20, 20, 20);
+}
+
+#gui {
+    z-index: 1;
+    top: 90px;
+    left: -4vw;
+    position: relative;
 }

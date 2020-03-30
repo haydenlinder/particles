@@ -4,8 +4,21 @@ body {
     align-items: center;
     color: white;
     background-color: black;
+    font-family: sans-serif;
 }
 
+
+header {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    width: 70vw;
+}
+
+.git {
+    height: 64px;
+    width: 64px;
+}
 canvas {
     background-color: rgb(199, 199, 199);
     height: 80vh;

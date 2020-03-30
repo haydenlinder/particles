@@ -66,7 +66,7 @@ class View {
         this.canvas.width = canvas.clientWidth;
         this.canvas.height = canvas.clientHeight;
         this.renderer.setViewport(0, 0, canvas.clientWidth, canvas.clientHeight);
-        this.camera.aspect = canvas.clientWidth / canvas.clientHeight;
+        // this.camera.aspect = canvas.clientWidth / canvas.clientHeight;
         this.camera.updateMatrix();
     }
 
@@ -88,16 +88,12 @@ class View {
     restart() {
         this.scene.children = [];
         this.universe.populate();
-        this.camera.position.multiplyScalar(0)
-        this.camera.position.z = 200
-        if (this.flyControls) this.flyControls.dispose();
         
         if (this.composer) this.composer.dispose();
         this.composer = new POSTPROCESSING.EffectComposer(this.renderer);
         let renderPass = new POSTPROCESSING.RenderPass(this.scene, this.camera);
         this.composer.addPass(renderPass);
 
-        // this.flyControls.dragToLook = true;
         document.getElementById('canvas').classList.remove('light')
     }
 

@@ -18,16 +18,19 @@ const view = new View({
     universeOptions: options.universeOptions
 });
 
-
 const gui = new dat.GUI();
 gui.domElement.id = 'gui';
 
-document.addEventListener('DOMContentLoaded', () => {
-    let folders = document.getElementsByTagName('ul')
-    for (let i = 0; i < folders.length; i++) {
-        folders[i].classList.remove('closed')
-    }
-})
+// open gui controls on page load
+
+// document.addEventListener('DOMContentLoaded', () => {
+//     let folders = document.getElementsByTagName('ul')
+//     for (let i = 0; i < folders.length; i++) {
+//         folders[i].classList.remove('closed')
+//     }
+// })
+
+gui.close();
 
 let f1 = gui.addFolder('View (you can also zoom by scrolling)')
 f1.add(view.camera.position, 'z', 0, 1000)

@@ -19,6 +19,7 @@
   "homepage": "https://github.com/haydenlinder/particles#readme",
   "dependencies": {
     "dat.gui": "^0.7.6",
+    "postprocessing": "^6.13.2",
     "three": "^0.115.0",
     "three-fly-controls": "^2.0.0",
     "three-orbitcontrols": "^2.110.3"

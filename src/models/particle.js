@@ -1,13 +1,13 @@
 import * as THREE from 'three';
+import * as POSTPROCESSING from 'postprocessing';
 
 class Particle extends THREE.Mesh {
     constructor({ radius, density, heat, universe }){
         const mass = density * 4/3 * Math.PI * radius ** 3;
-
         const geometry = new THREE.SphereGeometry(radius, 30, 30);
         const material = new THREE.MeshPhongMaterial({ color: 0x33F9FF, shininess: 0})//, emissiveIntensity: 10});
         super(geometry, material);
-            
+        
         this.siblings = universe.scene.children
         this.universe = universe;
         this.universe.totalMass += mass
@@ -26,6 +26,8 @@ class Particle extends THREE.Mesh {
     animate() {
         this.siblings.forEach(p2 => {
             if (this.uuid !== p2.uuid) {
+                this.updateMass()
+                p2.updateMass()
                 let d = this.position.distanceTo(p2.position)
                 if (d <= this.radius + p2.radius) {
                     this.mass > p2.mass ? this.absorb(p2) : p2.absorb(this)
@@ -37,27 +39,23 @@ class Particle extends THREE.Mesh {
     }
 
     absorb(p2) {
-        this.updateMass()
-        p2.updateMass()
-        let newMass = this.mass + p2.mass;
-        if (newMass > 1000000){//this.universe.totalMass/3){
-            if (!this.sun) {
-                this.density *= 1/4;
-                this.material = new THREE.MeshBasicMaterial({color: 'yellow'})
-                let light = new THREE.PointLight({
-                    color: 'yellow',
-                    distance: 2,
-                    decay: 2
-                });
-                this.add(light);
-                // this.material.emissive.set('yellow')
-                this.sun = true
-                let canvas = document.getElementById('canvas')
-                
-                canvas.classList.add('light')
-            }
-            this.children[0].intensity = 0.0000005 * newMass;
+        if (p2.sun) {
+            p2.godraysEffect.dispose();
+            // this.universe.view.composer.passes = [];
+            this.godraysEffect = new POSTPROCESSING.GodRaysEffect(this.universe.view.camera, this, {
+                resolutionScale: 1,
+                density: 1.5,
+                decay: 0.95,
+                weight: 0.1,
+                samples: 100
+            })
+            let effectPass = new POSTPROCESSING.EffectPass(this.universe.view.camera, this.godraysEffect);
+            effectPass.renderToScreen = true
+
+            effectPass.uniforms = this.universe.suns
+            this.universe.view.composer.addPass(effectPass);
         }
+        let newMass = this.mass + p2.mass;
         
         let newVelocity = new THREE.Vector3(
             (this.velocity.x * this.mass + p2.velocity.x * p2.mass) / newMass,
@@ -84,6 +82,7 @@ class Particle extends THREE.Mesh {
         this.mass = newMass;
         this.universe.scene.remove(p2)
         this.move();
+        
     }
 
     gravitate(p2) {
@@ -120,6 +119,39 @@ class Particle extends THREE.Mesh {
             this.density = this.universe.density/4
         } else {
             this.density = this.universe.density
+        } if (this.mass > 1000000) {//this.universe.totalMass/3){
+            if (!this.sun) {
+                this.density *= 1 / 4;
+                this.material = new THREE.MeshBasicMaterial({ color: 'yellow' })
+
+                let light = new THREE.PointLight({
+                    color: 'yellow',
+                    distance: 2,
+                    decay: 2
+                });
+                this.add(light);
+
+                let canvas = document.getElementById('canvas')
+                canvas.classList.add('light')
+
+                this.godraysEffect = new POSTPROCESSING.GodRaysEffect(this.universe.view.camera, this, {
+                    resolutionScale: 1,
+                    density: 1.5,
+                    decay: 0.95,
+                    weight: 0.1,
+                    samples: 100
+                })
+                this.godraysEffect.bur = true;
+                let effectPass = new POSTPROCESSING.EffectPass(this.universe.view.camera, this.godraysEffect);
+                effectPass.renderToScreen = true
+
+                effectPass.uniforms = this.universe.suns
+                this.universe.view.composer.addPass(effectPass);
+
+                this.sun = true
+                this.universe.suns += 1;
+            }
+            this.children[0].intensity = 0.0000005 * this.mass;
         }
     }
 }

@@ -14,9 +14,9 @@ class Universe {
         this.view = view;
 
         this.totalMass = 0;
-
+        this.suns = 0;
         this.populate();
-  
+        
     }
 
     defaults() {
@@ -45,11 +45,12 @@ class Universe {
         }
     }
 
-    restart() {
-        this.scene.children = [];
-        this.populate();
-        document.getElementById('canvas').classList.remove('light')
-    }
+    // restart() {
+    //     this.scene.children = [];
+    //     this.populate();
+    //     this.view.flyControls.dispose();
+    //     document.getElementById('canvas').classList.remove('light')
+    // }
 
 }
 

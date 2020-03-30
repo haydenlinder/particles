@@ -4,7 +4,7 @@ import * as dat from 'dat.gui'
 let options = {
     distance: 200,
     universeOptions: {
-        n: 200,
+        n: 250,
         size: 1,
         heat: 0.005,
         spread: 20,
@@ -41,7 +41,7 @@ f2.add(view.universe, 'density', 1, 9000)
 f2.add(view.universe, 'gravity', 0, 10000).step(1)
 
 let f3 = gui.addFolder('Play')
-f3.add(view.universe, 'restart')
+f3.add(view, 'restart')
 f3.add(view, 'pause')
 
 

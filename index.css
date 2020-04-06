@@ -9,16 +9,32 @@ body {
 
 
 header {
+    /* background-color: red; */
     display: flex;
-    justify-content: space-between;
+    align-items: center;
+    width: 90vw;
+    padding: 10px
+}
+
+.left-nav {
+    display: flex;
+}
+
+.right-nav {
+    display: flex;
     align-items: baseline;
-    width: 70vw;
+    justify-content: space-between;
+    width: 80vw;
+
 }
 
 .git {
-    height: 64px;
-    width: 64px;
+    height: 32px;
+    width: 32px;
+    padding-right: 10px;
 }
+
+
 canvas {
     background-color: rgb(199, 199, 199);
     height: 80vh;
@@ -31,7 +47,7 @@ canvas.light {
 
 #gui {
     z-index: 1;
-    top: 90px;
+    top: 110px;
     left: -4vw;
     position: relative;
 }

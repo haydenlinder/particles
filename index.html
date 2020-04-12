@@ -29,17 +29,30 @@
     </script>
 </head>
 <body>
-    <header>
-        <a href="https://github.com/haydenlinder/particles">
-            <img src="git.png" class="git">
-        </a>
-        <div class="right-nav">
-            <h1>Particles</h1>
+    <div class="top">
+        <div class="info">
+            <header>
+                <h1>Particles</h1>
+                <a href="https://github.com/haydenlinder/particles">
+                    <img src="git.png" class="git">
+                </a>
+                <p class="desc">An orbital physics simulator</p>
+            </header>
+            <div class="bar"></div>
+            <section>
+                <p>• Set conditions for a new universe and click restart to watch it develop from any angle or zoom level.</p>
+                <p>• When a body accumulates enough mass, it becomes a star.</p>
+                <p>• Change gravity and density in real time.</p>
+            </section>
+        </div>
+        <div class="labels">
             <div class="label">Click and drag to rotate</div>
             <div class="label">Scroll to zoom</div>
-            <div class="label">Controls here ↓</div>
+            <div id="controls-here">
+                <div class="label">Controls here ↓ <div class="message"><span>click</span> <span class="play">play_pause</span> <span>to begin</span></div></div>
+            </div> 
         </div>
-    </header>
+    </div>
     
     <canvas id="canvas"></canvas>
 
@@ -114,7 +127,7 @@
                 this.renderer.render(this.scene, this.camera);
             }
 
-            pause() {
+            play_pause() {
                 this.paused = this.paused ? false : true
             }
 
@@ -169,11 +182,11 @@
             }
 
             defaults() {
-                this.view.camera.position.z = 200
+                this.view.camera.position.z = 300
                 this.n = 200
                 this.size = 1
                 this.heat = 0.005
-                this.spread = 20
+                this.spread = 30
                 this.density = 5520
                 this.gravity = 3000
             }
@@ -350,12 +363,12 @@
         }
 
         let options = {
-            distance: 200,
+            distance: 300,
             universeOptions: {
                 n: 250,
                 size: 1,
                 heat: 0.005,
-                spread: 20,
+                spread: 30,
                 density: 5520,
                 gravity: 3000,
             }
@@ -366,27 +379,34 @@
             universeOptions: options.universeOptions
         });
 
-        const gui = new dat.GUI();
+        const gui = new dat.GUI({ autoplace: false });
         gui.domElement.id = 'gui';
 
-        gui.close();
+        document.addEventListener('DOMContentLoaded', () => {
+            const canvas = document.getElementById('controls-here')
+            canvas.appendChild(gui.domElement)
+        });
 
-        let f1 = gui.addFolder('View (you can also zoom by scrolling)')
-        f1.add(view.camera.position, 'z', 0, 1000)
+        let f1 = gui.addFolder('View (you can also zoom by scrolling)');
+        f1.add(view.camera.position, 'z', 0, 1000);
+        f1.open();
 
         let f2 = gui.addFolder('Universe');
-        f2.add(view.universe, 'n', 0, 400)
-        f2.add(view.universe, 'size', 1, 5)
-        f2.add(view.universe, 'heat', 0, 0.1)
-        f2.add(view.universe, 'spread', 1, 1000)
-        f2.add(view.universe, 'density', 1, 9000)
-        f2.add(view.universe, 'gravity', 0, 10000).step(1)
+        f2.add(view.universe, 'n', 0, 400);
+        f2.add(view.universe, 'size', 1, 2);
+        f2.add(view.universe, 'heat', 0, 0.1);
+        f2.add(view.universe, 'spread', 1, 1000);
+        f2.add(view.universe, 'density', 1, 9000);
+        f2.add(view.universe, 'gravity', 0, 10000).step(1);
+        f2.open();
 
-        let f3 = gui.addFolder('Play')
-        f3.add(view, 'restart')
-        f3.add(view, 'pause')
+        let f3 = gui.addFolder('Play');
+        f3.add(view, 'restart');
+        f3.add(view, 'play_pause');
+        f3.open();
 
         view.animate();
+        view.play_pause();
     </script>
 
 </body>

@@ -49,7 +49,7 @@
             <div class="label">Click and drag to rotate</div>
             <div class="label">Scroll to zoom</div>
             <div id="controls-here">
-                <div class="label">Controls here ↓ <div class="message"><span>click</span> <span class="play">play_pause</span> <span>to begin</span></div></div>
+                <div class="label"><div class="message"><span>click</span> <span class="play">play_pause</span> <span>to begin</span></div>Controls here ↓</div>
             </div> 
         </div>
     </div>
@@ -123,12 +123,12 @@
                 this.renderer.clear();
                 this.renderer.clearDepth();
                 this.render();
-                if (this.composer) this.composer.render(0.1)
+                this.composer.render(0.1);
                 this.renderer.render(this.scene, this.camera);
             }
 
             play_pause() {
-                this.paused = this.paused ? false : true
+                this.paused = this.paused ? false : true ;
             }
 
             restart() {
@@ -140,7 +140,7 @@
                 let renderPass = new POSTPROCESSING.RenderPass(this.scene, this.camera);
                 this.composer.addPass(renderPass);
 
-                document.getElementById('canvas').classList.remove('light')
+                document.getElementById('canvas').classList.remove('light');
             }
 
             render() {
@@ -178,7 +178,6 @@
                 this.totalMass = 0;
                 this.suns = 0;
                 this.populate();
-
             }
 
             defaults() {
@@ -202,7 +201,7 @@
                     particle.position.x = 8 * this.spread * (Math.random() - Math.random())
                     particle.position.y = 3 * this.spread * (Math.random() - Math.random())
                     particle.position.z = 4 * this.spread * (Math.random() - Math.random())
-
+                    
                     this.scene.add(particle);
                 }
             }
@@ -211,7 +210,7 @@
         class Particle extends THREE.Mesh {
             constructor({ radius, density, heat, universe }) {
                 const mass = density * 4 / 3 * Math.PI * radius ** 3;
-                const geometry = new THREE.SphereGeometry(radius, 30, 30);
+                const geometry = new THREE.SphereGeometry(radius + 0.1, 30, 30);
                 const material = new THREE.MeshPhongMaterial({ color: 0x33F9FF, shininess: 0 })//, emissiveIntensity: 10});
                 super(geometry, material);
 
@@ -363,7 +362,7 @@
         }
 
         let options = {
-            distance: 300,
+            distance: 500,
             universeOptions: {
                 n: 250,
                 size: 1,
@@ -387,6 +386,11 @@
             canvas.appendChild(gui.domElement)
         });
 
+        let f3 = gui.addFolder('Play');
+        f3.add(view, 'play_pause');
+        f3.add(view, 'restart');
+        f3.open();
+
         let f1 = gui.addFolder('View (you can also zoom by scrolling)');
         f1.add(view.camera.position, 'z', 0, 1000);
         f1.open();
@@ -399,11 +403,6 @@
         f2.add(view.universe, 'density', 1, 9000);
         f2.add(view.universe, 'gravity', 0, 10000).step(1);
         f2.open();
-
-        let f3 = gui.addFolder('Play');
-        f3.add(view, 'restart');
-        f3.add(view, 'play_pause');
-        f3.open();
 
         view.animate();
         view.play_pause();

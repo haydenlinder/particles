@@ -48,8 +48,10 @@
         <div class="labels">
             <div class="label">Click and drag to rotate</div>
             <div class="label">Scroll to zoom</div>
-            <div id="controls-here">
-                <div class="label"><div class="message"><span>click</span> <span class="play">play_pause</span> <span>to begin</span></div>Controls here ↓</div>
+            <div class="controls-here" id="controls-here">
+                <div class="message"> <div>click</div> <div class="play">play_pause</div> <div>to begin</div> </div>
+                <div class="message"> <div>click</div> <div class="play">restart</div> <div>to create a new universe with initial conditions</div> </div>
+                <div>Controls here ↓</div>
             </div> 
         </div>
     </div>
@@ -59,11 +61,8 @@
     <!-- entry -->
     <script type="module">
         import { OrbitControls } from "https://threejs.org/examples/jsm/controls/OrbitControls.js";
-
-        class View {
-            
+        class View { 
             constructor({ distance, universeOptions }) {
-                this.distance = distance;
                 this.universeOptions = universeOptions;
                 this.scene = new THREE.Scene();
                 this.camera = new THREE.PerspectiveCamera(
@@ -144,6 +143,11 @@
             }
 
             render() {
+                if (!this.prevView) this.prevView = this.view_distance;
+                if (this.prevView !== this.view_distance) {
+                    this.camera.position.z = this.view_distance;
+                }
+
                 if (!this.paused) {
 
                     let now = new Date();
@@ -166,14 +170,14 @@
 
         class Universe {
             constructor({ n, size, heat, density, spread, gravity, scene, view }) {
-                this.n = n;
-                this.size = size;
-                this.scene = scene;
-                this.heat = heat;
-                this.spread = spread;
+                this.initial_number_orbs = n;
+                this.initial_orb_radius = size;
+                this.initial_speed = heat;
+                this.initial_spread = spread;
                 this.density = density;
                 this.gravity = gravity;
                 this.view = view;
+                this.scene = scene;
 
                 this.totalMass = 0;
                 this.suns = 0;
@@ -182,25 +186,25 @@
 
             defaults() {
                 this.view.camera.position.z = 300
-                this.n = 200
-                this.size = 1
-                this.heat = 0.005
-                this.spread = 30
+                this.initial_number_orbs = 200
+                this.initial_orb_radius = 1
+                this.initial_speed = 0.005
+                this.initial_spread = 30
                 this.density = 5520
                 this.gravity = 3000
             }
 
             populate() {
-                for (let i = 0; i < this.n; i++) {
+                for (let i = 0; i < this.initial_number_orbs; i++) {
                     let particle = new Particle({
-                        radius: this.size * (Math.random() + 0.1) ** 10,
+                        radius: this.initial_orb_radius * (Math.random() + 0.1) ** 10,
                         density: this.density,
-                        heat: this.heat,
+                        heat: this.initial_speed,
                         universe: this
                     });
-                    particle.position.x = 8 * this.spread * (Math.random() - Math.random())
-                    particle.position.y = 3 * this.spread * (Math.random() - Math.random())
-                    particle.position.z = 4 * this.spread * (Math.random() - Math.random())
+                    particle.position.x = 8 * this.initial_spread * (Math.random() - Math.random())
+                    particle.position.y = 3 * this.initial_spread * (Math.random() - Math.random())
+                    particle.position.z = 4 * this.initial_spread * (Math.random() - Math.random())
                     
                     this.scene.add(particle);
                 }
@@ -378,7 +382,7 @@
             universeOptions: options.universeOptions
         });
 
-        const gui = new dat.GUI({ autoplace: false });
+        const gui = new dat.GUI({ autoplace: false, width: 300 });
         gui.domElement.id = 'gui';
 
         document.addEventListener('DOMContentLoaded', () => {
@@ -391,15 +395,15 @@
         f3.add(view, 'restart');
         f3.open();
 
-        let f1 = gui.addFolder('View (you can also zoom by scrolling)');
-        f1.add(view.camera.position, 'z', 0, 1000);
-        f1.open();
+        // let f1 = gui.addFolder('View (you can also zoom by scrolling)');
+        // f1.add(view.camera.position, 'z', 0, 1000);
+        // f1.open();
 
         let f2 = gui.addFolder('Universe');
-        f2.add(view.universe, 'n', 0, 400);
-        f2.add(view.universe, 'size', 1, 2);
-        f2.add(view.universe, 'heat', 0, 0.1);
-        f2.add(view.universe, 'spread', 1, 1000);
+        f2.add(view.universe, 'initial_number_orbs', 0, 400);
+        f2.add(view.universe, 'initial_orb_radius', 1, 2);
+        f2.add(view.universe, 'initial_speed', 0, 0.1);
+        f2.add(view.universe, 'initial_spread', 1, 1000);
         f2.add(view.universe, 'density', 1, 9000);
         f2.add(view.universe, 'gravity', 0, 10000).step(1);
         f2.open();

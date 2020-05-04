@@ -61,6 +61,7 @@
     <!-- entry -->
     <script type="module">
         import { OrbitControls } from "https://threejs.org/examples/jsm/controls/OrbitControls.js";
+
         class View { 
             constructor({ distance, universeOptions }) {
                 this.universeOptions = universeOptions;
@@ -76,7 +77,7 @@
 
                 this.canvas = document.getElementById('canvas');
                 let ctx = canvas.getContext('webgl');
-                ctx.clearColor(0, 0, 0.1, 0);
+                ctx.clearColor(0, 1, 1, 1);
                 this.canvas.width = canvas.clientWidth;
                 this.canvas.height = canvas.clientHeight;
 
@@ -124,6 +125,7 @@
                 this.render();
                 this.composer.render(0.1);
                 this.renderer.render(this.scene, this.camera);
+                
             }
 
             play_pause() {
@@ -133,13 +135,36 @@
             restart() {
                 this.scene.children = [];
                 this.universe.populate();
-
+                this.universe.light = false;
                 if (this.composer) this.composer.dispose();
                 this.composer = new POSTPROCESSING.EffectComposer(this.renderer);
                 let renderPass = new POSTPROCESSING.RenderPass(this.scene, this.camera);
                 this.composer.addPass(renderPass);
-
+                this.center_on_origin()
                 document.getElementById('canvas').classList.remove('light');
+            }
+
+            center_on_star() {
+                if (!this.universe.light) return window.alert("No stars yet. Wait for a star to form to center on it.")
+                this.scene.children.forEach(child => {
+                    if (child.sun) {
+                        this.camera.lookAt(child.position);
+                        this.target = child.position;
+                        this.controls.target = child.position;
+                        this.centered = true
+                        return true;
+                    }
+                })
+            }
+
+            center_on_origin() {
+                if (this.centered) {
+                    this.centered = false
+                    let pos = new THREE.Vector3(0,0,0)
+                    this.camera.lookAt(pos)
+                    this.controls.target = pos
+                    this.target = null
+                }
             }
 
             render() {
@@ -158,10 +183,15 @@
                         this.countFramesPerSecond += 1;
                     }
 
-                    this.universe.scene.children.forEach(child => {
+                    this.scene.children.forEach(child => {
                         child.animate();
                         child.updateMass();
                     })
+
+                    if (this.centered) {
+                        this.camera.lookAt(this.target);
+                        // this.controls.target = this.target;
+                    } 
 
                     this.lastRendered = new Date();
                 }
@@ -215,7 +245,8 @@
             constructor({ radius, density, heat, universe }) {
                 const mass = density * 4 / 3 * Math.PI * radius ** 3;
                 const geometry = new THREE.SphereGeometry(radius + 0.1, 30, 30);
-                const material = new THREE.MeshPhongMaterial({ color: 0x33F9FF, shininess: 0 })//, emissiveIntensity: 10});
+                // const material = new THREE.MeshPhongMaterial({ color: 0x33F9FF, shininess: 0 });
+                const material = new THREE.MeshBasicMaterial({ color: 0x00FF00});
                 super(geometry, material);
 
                 this.siblings = universe.scene.children
@@ -235,9 +266,8 @@
 
             animate() {
                 this.siblings.forEach(p2 => {
+                    p2.updateMass()
                     if (this.uuid !== p2.uuid) {
-                        this.updateMass()
-                        p2.updateMass()
                         let d = this.position.distanceTo(p2.position)
                         if (d <= this.radius + p2.radius) {
                             this.mass > p2.mass ? this.absorb(p2) : p2.absorb(this)
@@ -328,6 +358,10 @@
                     this.density = this.universe.density / 4
                 } else {
                     this.density = this.universe.density
+                    if (!this.colored && this.universe.light) {
+                        this.material = new THREE.MeshPhongMaterial({ color: 0x33F9FF, shininess: 0 });
+                        this.colored = true;
+                    }
                 } if (this.mass > 1000000) {//this.universe.totalMass/3){
                     if (!this.sun) {
                         this.density *= 1 / 4;
@@ -342,6 +376,7 @@
 
                         let canvas = document.getElementById('canvas')
                         canvas.classList.add('light')
+                        this.universe.light = true;
 
                         this.godraysEffect = new POSTPROCESSING.GodRaysEffect(this.universe.view.camera, this, {
                             resolutionScale: 1,
@@ -385,9 +420,21 @@
         const gui = new dat.GUI({ autoplace: false, width: 300 });
         gui.domElement.id = 'gui';
 
+        let alert = true;
+
         document.addEventListener('DOMContentLoaded', () => {
             const canvas = document.getElementById('controls-here')
             canvas.appendChild(gui.domElement)
+            let sliders = document.getElementsByClassName('slider');
+            for (let i = 0; i < 4; i++) {
+                sliders[i].addEventListener('click', () => {
+                    if (alert) {
+                        window.alert("Remember, you'll need to click 'restart' for initial conditions to take effect.");
+                        alert = false;
+                    }
+
+                })
+            }
         });
 
         let f3 = gui.addFolder('Play');
@@ -395,9 +442,10 @@
         f3.add(view, 'restart');
         f3.open();
 
-        // let f1 = gui.addFolder('View (you can also zoom by scrolling)');
-        // f1.add(view.camera.position, 'z', 0, 1000);
-        // f1.open();
+        let f1 = gui.addFolder('View (you can also zoom by scrolling)');
+        f1.add(view, 'center_on_star');
+        f1.add(view, 'center_on_origin');
+        f1.open();
 
         let f2 = gui.addFolder('Universe');
         f2.add(view.universe, 'initial_number_orbs', 0, 400);

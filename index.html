@@ -434,12 +434,12 @@
         let playControlText = document.createElement('div')
         playControlText.innerText = 'play'
         let playButtonText = document.createElement('div')
-        playButtonText.innerText = '>' 
+        playButtonText.innerText = '▶' 
         let playButton = document.createElement('div')
         playButton.className = 'button-container'
         playButton.onclick = e => {
             view.play_pause();
-            playButtonText.innerText = view.paused ? '>' : '||'
+            playButtonText.innerText = view.paused ? '▶' : '||'
             playControlText.innerText = view.paused ? 'play' : 'pause'
         }
         playButton.appendChild(playButtonText);
@@ -894,19 +894,15 @@
 
         let controls = document.createElement('div');
         controls.className = 'controls'
-        controls.appendChild(playControl)
-        controls.appendChild(restartControl)
-        controls.appendChild(originControl)
-        controls.appendChild(starControl)
-        controls.appendChild(gravityControl)
-        controls.appendChild(densityControl)
-        controls.appendChild(spreadControl)
-        controls.appendChild(speedControl)
-        controls.appendChild(countControl)
+        // controls.appendChild(gravityControl)
+        // controls.appendChild(densityControl)
+        // controls.appendChild(spreadControl)
+        // controls.appendChild(speedControl)
+        // controls.appendChild(countControl)
 
-        let controlsVisible = true;
+        let controlsVisible = false;
         let toggleControls = document.createElement('div')
-        toggleControls.innerText = 'x'
+        toggleControls.innerText = '⫯⫰⫱'
         toggleControls.className = 'toggle-controls'
         toggleControls.onclick = e => {
             if (controlsVisible) {
@@ -929,9 +925,12 @@
             }
         }
 
-        canvasContainer.appendChild(toggleControls)
+        controls.appendChild(toggleControls)
 
-
+        controls.appendChild(playControl)
+        controls.appendChild(restartControl)
+        controls.appendChild(originControl)
+        controls.appendChild(starControl)
         let alert = true;
 
         // document.addEventListener('DOMContentLoaded', () => {

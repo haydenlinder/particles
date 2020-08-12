@@ -88,9 +88,10 @@ h1, p {
 
 .controls {
     position: absolute;
+    text-align: center;
     top: 10px;
     left: 10px;
-    right: 50px;
+    right: 10px;
     display: block;
 }
 
@@ -164,9 +165,11 @@ h1, p {
 }
 
 .toggle-controls {
-    position: absolute;
-    top: 15px;
-    right: 15px;
+    float: left;
+    margin: 3px;
+    margin-top: 5px;
+    width: 50px;
+    height: 50px;
     font-size: 35px;
 }
 

@@ -910,11 +910,20 @@
         toggleControls.className = 'toggle-controls'
         toggleControls.onclick = e => {
             if (controlsVisible) {
-                controls.remove();
+                // controls.remove();
+                gravityControl.remove()
+                densityControl.remove()
+                spreadControl.remove()
+                speedControl.remove()
+                countControl.remove()
                 controlsVisible = false;
                 toggleControls.innerText = '⫯⫰⫱'
             } else {
-                canvasContainer.appendChild(controls)
+                controls.appendChild(gravityControl)
+                controls.appendChild(densityControl)
+                controls.appendChild(spreadControl)
+                controls.appendChild(speedControl)
+                controls.appendChild(countControl)
                 controlsVisible = true
                 toggleControls.innerText = ' x '
             }

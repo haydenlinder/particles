@@ -38,29 +38,29 @@
                 </a>
                 <p class="desc">An orbital physics simulator</p>
             </header>
-            <div class="bar"></div>
-            <section>
-                <p>• Set conditions for a new universe and click restart to watch it develop from any angle or zoom level.</p>
-                <p>• When a body accumulates enough mass, it becomes a star.</p>
-                <p>• Change gravity and density in real time.</p>
-            </section>
-        </div>
-        <div class="labels">
-            <div class="label">Click and drag to rotate</div>
-            <div class="label">Scroll to zoom</div>
-            <div class="controls-here" id="controls-here">
-                <div class="message"> <div>click</div> <div class="play">play_pause</div> <div>to begin</div> </div>
-                <div class="message"> <div>click</div> <div class="play">restart</div> <div>to create a new universe with initial conditions</div> </div>
-                <div>Controls here ↓</div>
-            </div> 
         </div>
     </div>
     
-    <canvas id="canvas"></canvas>
+    <div id="canvas-container">
+        <canvas id="canvas"></canvas>
+    </div>
 
     <!-- entry -->
     <script type="module">
         import { OrbitControls } from "https://threejs.org/examples/jsm/controls/OrbitControls.js";
+
+        let loading = document.createElement('div');
+        loading.className = 'loading';
+        loading.innerText = 'Loading...';
+
+        function setLoading(bool) {
+            if (bool) {
+                let canvasContainer = document.getElementById('canvas-container');
+                canvasContainer.appendChild(loading)
+            } else {
+                loading.remove();
+            }
+        };
 
         class View { 
             constructor({ distance, universeOptions }) {
@@ -100,7 +100,7 @@
                 this.universe = new Universe({
                     ...universeOptions,
                     scene: this.scene,
-                    view: this
+                    view: this,
                 });
 
                 this.$real_framerate = $("#real_framerate");
@@ -146,6 +146,8 @@
 
             center_on_star() {
                 if (!this.universe.light) return window.alert("No stars yet. Wait for a star to form to center on it.")
+                originButton.classList.remove('selected')
+                starButton.classList.add('selected')
                 this.scene.children.forEach(child => {
                     if (child.sun) {
                         this.camera.lookAt(child.position);
@@ -164,6 +166,8 @@
                     this.camera.lookAt(pos)
                     this.controls.target = pos
                     this.target = null
+                    starButton.classList.remove('selected')
+                    originButton.classList.add('selected')
                 }
             }
 
@@ -225,19 +229,23 @@
             }
 
             populate() {
-                for (let i = 0; i < this.initial_number_orbs; i++) {
-                    let particle = new Particle({
-                        radius: this.initial_orb_radius * (Math.random() + 0.1) ** 10,
-                        density: this.density,
-                        heat: this.initial_speed,
-                        universe: this
-                    });
-                    particle.position.x = 5 * this.initial_spread * (Math.random() - Math.random())
-                    particle.position.y = 5 * this.initial_spread * (Math.random() - Math.random())
-                    particle.position.z = 5 * this.initial_spread * (Math.random() - Math.random())
-                    
-                    this.scene.add(particle);
-                }
+                setLoading(true);
+                setTimeout(() => {
+                    for (let i = 0; i < this.initial_number_orbs; i++) {
+                        let particle = new Particle({
+                            radius: this.initial_orb_radius * (Math.random() + 0.1) ** 10,
+                            density: this.density,
+                            heat: this.initial_speed,
+                            universe: this
+                        });
+                        particle.position.x = 5 * this.initial_spread * (Math.random() - Math.random());
+                        particle.position.y = 5 * this.initial_spread * (Math.random() - Math.random());
+                        particle.position.z = 5 * this.initial_spread * (Math.random() - Math.random());
+                        
+                        this.scene.add(particle);
+                        setLoading(false);
+                    }
+                },100);
             }
         }
 
@@ -417,16 +425,512 @@
             universeOptions: options.universeOptions
         });
 
-        const gui = new dat.GUI({ autoplace: false, width: 300 });
-        gui.domElement.id = 'gui';
+        // const gui = new dat.GUI({ autoplace: false, width: 300 });
+        // gui.domElement.id = 'gui';
+
+
+        let canvasContainer = document.getElementById('canvas-container')
+        
+        let playControlText = document.createElement('div')
+        playControlText.innerText = 'play'
+        let playButtonText = document.createElement('div')
+        playButtonText.innerText = '▶' 
+        let playButton = document.createElement('div')
+        playButton.className = 'button-container'
+        playButton.onclick = e => {
+            view.play_pause();
+            playButtonText.innerText = view.paused ? '▶' : '||'
+            playControlText.innerText = view.paused ? 'play' : 'pause'
+        }
+        playButton.appendChild(playButtonText);
+        let playControl = document.createElement('div');
+        playControl.className = 'controler';
+        playControl.appendChild(playButton);
+        playControl.appendChild(playControlText);
+        
+        let restartControlText = document.createElement('div')
+        restartControlText.innerText = 'restart'
+        let restartText = document.createElement('div')
+        restartText.innerText = '↻' 
+        let restartButton = document.createElement('div')
+        restartButton.className = 'button-container'
+        restartButton.onclick = e => {
+            setLoading(true);
+            view.restart();
+        }
+        restartButton.appendChild(restartText);
+        let restartControl = document.createElement('div');
+        restartControl.className = 'controler';
+        restartControl.appendChild(restartButton);
+        restartControl.appendChild(restartControlText);
+
+        let originControlText = document.createElement('div')
+        originControlText.innerText = 'origin'
+        let originText = document.createElement('div')
+        originText.innerText = '◎' 
+        let originButton = document.createElement('div')
+        originButton.className = 'button-container selected'
+        originButton.onclick = e => {
+            view.center_on_origin();
+        }
+        originButton.appendChild(originText);
+        let originControl = document.createElement('div');
+        originControl.className = 'controler';
+        originControl.appendChild(originButton);
+        originControl.appendChild(originControlText);
+
+        let starControlText = document.createElement('div')
+        starControlText.innerText = 'star'
+        let starText = document.createElement('div')
+        starText.innerText = '☀' 
+        let starButton = document.createElement('div')
+        starButton.id = 'star-button'
+        starButton.className = 'button-container'
+        starButton.onclick = e => {
+            view.center_on_star();
+        }
+        starButton.appendChild(starText);
+        starButton.appendChild(starText);
+        let starControl = document.createElement('div');
+        starControl.className = 'controler';
+        starControl.appendChild(starButton);
+        starControl.appendChild(starControlText);
+
+        let gravityControlText = document.createElement('div')
+        gravityControlText.innerText = `gravity: ${view.universe.gravity}`
+        let gravitySliderContainer = document.createElement('div')
+        gravitySliderContainer.className = 'slider-container'
+        let x = 0;
+        gravitySliderContainer.ontouchmove = e => {
+            x = e.touches.item(0).pageX
+            const rect = gravitySlider.getBoundingClientRect()
+            const width = x - rect.x
+            if (width > gravitySliderContainer.offsetWidth) {
+                view.universe.gravity = 10000;
+                gravitySlider.style.width = '100%';
+                gravityControlText.innerText = `gravity: ${view.universe.gravity.toFixed(0)}`;
+                return null
+            }
+            if (width < 0) {
+                view.universe.gravity = 0;
+                gravitySlider.style.width = 0 + 'px';
+                gravityControlText.innerText = `gravity: ${view.universe.gravity.toFixed(0)}`;
+                return null
+            }
+            gravitySlider.style.width = width + 'px';
+            view.universe.gravity = 10000 * width / gravitySliderContainer.offsetWidth;
+            gravityControlText.innerText = `gravity: ${view.universe.gravity.toFixed(0)}`;
+        }
+        gravitySliderContainer.onmousedown = e => {
+            x = e.pageX;
+            const rect = gravitySlider.getBoundingClientRect()
+            const width = x - rect.x
+            if (width > gravitySliderContainer.offsetWidth) {
+                view.universe.gravity = 10000;
+                gravitySlider.style.width = '100%';
+                gravityControlText.innerText = `gravity: ${view.universe.gravity.toFixed(0)}`;
+                return null
+            }
+            if (width < 0) {
+                view.universe.gravity = 0;
+                gravitySlider.style.width = 0 + 'px';
+                gravityControlText.innerText = `gravity: ${view.universe.gravity.toFixed(0)}`;
+                return null
+            }
+            gravitySlider.style.width = width + 'px';
+            view.universe.gravity = 10000 * width/gravitySliderContainer.offsetWidth; 
+            gravityControlText.innerText = `gravity: ${view.universe.gravity.toFixed(0)}`;
+        }
+        document.addEventListener('mousemove', e => {
+            if (x) {
+                const rect = gravitySlider.getBoundingClientRect()
+                const width = e.pageX - rect.x
+                if (width > gravitySliderContainer.offsetWidth) {
+                    view.universe.gravity = 10000;
+                    gravitySlider.style.width = '100%';
+                    gravityControlText.innerText = `gravity: ${view.universe.gravity.toFixed(0)}`;
+                    return null
+                }
+                if (width < 0) {
+                    view.universe.gravity = 0;
+                    gravitySlider.style.width = 0 + 'px';
+                    gravityControlText.innerText = `gravity: ${view.universe.gravity.toFixed(0)}`;
+                    return null
+                }                
+                gravitySlider.style.width = width + 'px';
+                view.universe.gravity = 10000 * width/gravitySliderContainer.offsetWidth; 
+                gravityControlText.innerText = `gravity: ${view.universe.gravity.toFixed(0)}`;
+            }
+        })
+        document.addEventListener('mouseup', e => x = 0);
+        let gravitySlider = document.createElement('div')
+        gravitySlider.className = 'slider'
+        gravitySlider.style.width = 100*view.universe.gravity/10000 + '%'
+        gravitySliderContainer.appendChild(gravitySlider);
+        let gravityControl = document.createElement('div');
+        gravityControl.className = 'controler';
+        gravityControl.appendChild(gravitySliderContainer);
+        gravityControl.appendChild(gravityControlText);
+
+        let densityControlText = document.createElement('div')
+        densityControlText.innerText = `initial density: ${view.universe.density}`
+        let densitySliderContainer = document.createElement('div')
+        densitySliderContainer.className = 'slider-container initial'
+        let x2 = 0;
+        densitySliderContainer.ontouchmove = e => {
+            x2 = e.touches.item(0).pageX
+            const rect = densitySlider.getBoundingClientRect()
+            const width = x2 - rect.x
+            if (width > densitySliderContainer.offsetWidth) {
+                view.universe.density = 9000;
+                densitySlider.style.width = '100%';
+                densityControlText.innerText = `initial density: ${view.universe.density.toFixed(0)}`;
+                return null
+            }
+            if (width < 1) {
+                view.universe.density = 1;
+                densitySlider.style.width = 0 + 'px';
+                densityControlText.innerText = `initial density: ${view.universe.density.toFixed(0)}`;
+                return null
+            }
+            densitySlider.style.width = width + 'px';
+            view.universe.density = 9000 * width/densitySliderContainer.offsetWidth; 
+            densityControlText.innerText = `initial density: ${view.universe.density.toFixed(0)}`;
+        }
+        densitySliderContainer.onmousedown = e => {
+            x2 = e.pageX;
+            const rect = densitySlider.getBoundingClientRect()
+            const width = x2 - rect.x
+            if (width > densitySliderContainer.offsetWidth) {
+                view.universe.density = 9000;
+                densitySlider.style.width = '100%';
+                densityControlText.innerText = `initial density: ${view.universe.density.toFixed(0)}`;
+                return null
+            }
+            if (width < 1) {
+                view.universe.density = 1;
+                densitySlider.style.width = 0 + 'px';
+                densityControlText.innerText = `initial density: ${view.universe.density.toFixed(0)}`;
+                return null
+            }
+            densitySlider.style.width = width + 'px';
+            view.universe.density = 9000 * width/densitySliderContainer.offsetWidth; 
+            densityControlText.innerText = `initial density: ${view.universe.density.toFixed(0)}`;
+        }
+        document.addEventListener('mousemove', e => {
+            if (x2) {
+                const rect = densitySlider.getBoundingClientRect()
+                const width = e.pageX - rect.x
+                if (width > densitySliderContainer.offsetWidth) {
+                    view.universe.density = 9000;
+                    densitySlider.style.width = '100%';
+                    densityControlText.innerText = `initial density: ${view.universe.density.toFixed(0)}`;
+                    return null
+                }
+                if (width < 1) {
+                    view.universe.density = 1;
+                    densitySlider.style.width = 0 + 'px';
+                    densityControlText.innerText = `initial density: ${view.universe.density.toFixed(0)}`;
+                    return null
+                }                
+                densitySlider.style.width = width + 'px';
+                view.universe.density = 9000 * width/densitySliderContainer.offsetWidth; 
+                densityControlText.innerText = `initial density: ${view.universe.density.toFixed(0)}`;
+            }
+        })
+        document.addEventListener('mouseup', e => x2 = 0);
+        let densitySlider = document.createElement('div')
+        densitySlider.className = 'slider'
+        densitySlider.style.width = 100*view.universe.density/9000 + '%'
+        densitySliderContainer.appendChild(densitySlider);
+        let densityControl = document.createElement('div');
+        densityControl.className = 'controler';
+        densityControl.appendChild(densitySliderContainer);
+        densityControl.appendChild(densityControlText);
+
+        let spreadControlText = document.createElement('div')
+        spreadControlText.innerText = `initial spread: ${view.universe.initial_spread}`
+        let spreadSliderContainer = document.createElement('div')
+        spreadSliderContainer.className = 'slider-container initial'
+        let x3 = 0;
+        spreadSliderContainer.ontouchmove = e => {
+            x3 = e.touches.item(0).pageX
+            const rect = spreadSlider.getBoundingClientRect()
+            const width = x3 - rect.x
+            if (width > spreadSliderContainer.offsetWidth) {
+                view.universe.initial_spread = 1000;
+                spreadSlider.style.width = '100%';
+                spreadControlText.innerText = `initial spread: ${view.universe.initial_spread.toFixed(0)}`;
+                return null
+            }
+            if (width < 1) {
+                view.universe.initial_spread = 1;
+                spreadSlider.style.width = 0 + 'px';
+                spreadControlText.innerText = `initial spread: ${view.universe.initial_spread.toFixed(0)}`;
+                return null
+            }
+            spreadSlider.style.width = width + 'px';
+            view.universe.initial_spread = 1000 * width/spreadSliderContainer.offsetWidth; 
+            spreadControlText.innerText = `initial spread: ${view.universe.initial_spread.toFixed(0)}`;
+        }
+        spreadSliderContainer.onmousedown = e => {
+            x3 = e.pageX;
+            const rect = spreadSlider.getBoundingClientRect()
+            const width = x3 - rect.x
+            if (width > spreadSliderContainer.offsetWidth) {
+                view.universe.initial_spread = 1000;
+                spreadSlider.style.width = '100%';
+                spreadControlText.innerText = `initial spread: ${view.universe.initial_spread.toFixed(0)}`;
+                return null
+            }
+            if (width < 1) {
+                view.universe.initial_spread = 1;
+                spreadSlider.style.width = 0 + 'px';
+                spreadControlText.innerText = `initial spread: ${view.universe.initial_spread.toFixed(0)}`;
+                return null
+            }
+            spreadSlider.style.width = width + 'px';
+            view.universe.initial_spread = 1000 * width/spreadSliderContainer.offsetWidth; 
+            spreadControlText.innerText = `initial spread: ${view.universe.initial_spread.toFixed(0)}`;
+        }
+        document.addEventListener('mousemove', e => {
+            if (x3) {
+                const rect = spreadSlider.getBoundingClientRect()
+                const width = e.pageX - rect.x
+                if (width > spreadSliderContainer.offsetWidth) {
+                    view.universe.initial_spread = 1000;
+                    spreadSlider.style.width = '100%';
+                    spreadControlText.innerText = `initial spread: ${view.universe.initial_spread.toFixed(0)}`;
+                    return null
+                }
+                if (width < 1) {
+                    view.universe.initial_spread = 1;
+                    spreadSlider.style.width = 0 + 'px';
+                    spreadControlText.innerText = `initial spread: ${view.universe.initial_spread.toFixed(0)}`;
+                    return null
+                }                
+                spreadSlider.style.width = width + 'px';
+                view.universe.initial_spread = 1000 * width/spreadSliderContainer.offsetWidth; 
+                spreadControlText.innerText = `initial spread: ${view.universe.initial_spread.toFixed(0)}`;
+            }
+        })
+        document.addEventListener('mouseup', e => x3 = 0);
+        let spreadSlider = document.createElement('div')
+        spreadSlider.className = 'slider'
+        spreadSlider.style.width = 100*view.universe.initial_spread/1000 + '%'
+        spreadSliderContainer.appendChild(spreadSlider);
+        let spreadControl = document.createElement('div');
+        spreadControl.className = 'controler';
+        spreadControl.appendChild(spreadSliderContainer);
+        spreadControl.appendChild(spreadControlText);
+
+        let speedControlText = document.createElement('div')
+        speedControlText.innerText = `initial speed: ${view.universe.initial_speed}`
+        let speedSliderContainer = document.createElement('div')
+        speedSliderContainer.className = 'slider-container initial'
+        let x4 = 0;
+        speedSliderContainer.ontouchmove = e => {
+            x4 = e.touches.item(0).pageX
+            const rect = speedSlider.getBoundingClientRect()
+            const width = x4 - rect.x
+            if (width > speedSliderContainer.offsetWidth) {
+                view.universe.initial_speed = 0.1;
+                speedSlider.style.width = '100%';
+                speedControlText.innerText = `initial speed: ${view.universe.initial_speed.toFixed(4)}`;
+                return null
+            }
+            if (width < 1) {
+                view.universe.initial_speed = 0;
+                speedSlider.style.width = 0 + 'px';
+                speedControlText.innerText = `initial speed: ${view.universe.initial_speed.toFixed(4)}`;
+                return null
+            }
+            speedSlider.style.width = width + 'px';
+            view.universe.initial_speed = 0.1 * width/speedSliderContainer.offsetWidth; 
+            speedControlText.innerText = `initial speed: ${view.universe.initial_speed.toFixed(4)}`;
+        }
+        speedSliderContainer.onmousedown = e => {
+            x4 = e.pageX;
+            const rect = speedSlider.getBoundingClientRect()
+            const width = x4 - rect.x
+            if (width > speedSliderContainer.offsetWidth) {
+                view.universe.initial_speed = 0.1;
+                speedSlider.style.width = '100%';
+                speedControlText.innerText = `initial speed: ${view.universe.initial_speed.toFixed(4)}`;
+                return null
+            }
+            if (width < 1) {
+                view.universe.initial_speed = 0;
+                speedSlider.style.width = 0 + 'px';
+                speedControlText.innerText = `initial speed: ${view.universe.initial_speed.toFixed(4)}`;
+                return null
+            }
+            speedSlider.style.width = width + 'px';
+            view.universe.initial_speed = 0.1 * width/speedSliderContainer.offsetWidth; 
+            speedControlText.innerText = `initial speed: ${view.universe.initial_speed.toFixed(4)}`;
+        }
+        document.addEventListener('mousemove', e => {
+            if (x4) {
+                const rect = speedSlider.getBoundingClientRect()
+                const width = e.pageX - rect.x
+                if (width > speedSliderContainer.offsetWidth) {
+                    view.universe.initial_speed = 0.1;
+                    speedSlider.style.width = '100%';
+                    speedControlText.innerText = `initial speed: ${view.universe.initial_speed.toFixed(4)}`;
+                    return null
+                }
+                if (width < 1) {
+                    view.universe.initial_speed = 0;
+                    speedSlider.style.width = 0 + 'px';
+                    speedControlText.innerText = `initial speed: ${view.universe.initial_speed.toFixed(4)}`;
+                    return null
+                }                
+                speedSlider.style.width = width + 'px';
+                view.universe.initial_speed = 0.1 * width/speedSliderContainer.offsetWidth; 
+                speedControlText.innerText = `initial speed: ${view.universe.initial_speed.toFixed(4)}`;
+            }
+        })
+        document.addEventListener('mouseup', e => x4 = 0);
+        let speedSlider = document.createElement('div')
+        speedSlider.className = 'slider'
+        speedSlider.style.width = 100*view.universe.initial_speed/0.1 + '%'
+        speedSliderContainer.appendChild(speedSlider);
+        let speedControl = document.createElement('div');
+        speedControl.className = 'controler';
+        speedControl.appendChild(speedSliderContainer);
+        speedControl.appendChild(speedControlText);
+
+        let countControlText = document.createElement('div')
+        countControlText.innerText = `initial count: ${view.universe.initial_number_orbs}`
+        let countSliderContainer = document.createElement('div')
+        countSliderContainer.className = 'slider-container initial'
+        let x5 = 0;
+        countSliderContainer.ontouchmove = e => {
+            x5 = e.touches.item(0).pageX
+            const rect = countSlider.getBoundingClientRect()
+            const width = x5 - rect.x
+            if (width > countSliderContainer.offsetWidth) {
+                view.universe.initial_number_orbs = 500;
+                countSlider.style.width = '100%';
+                countControlText.innerText = `initial count: ${view.universe.initial_number_orbs.toFixed(0)}`;
+                return null
+            }
+            if (width < 1) {
+                view.universe.initial_number_orbs = 2;
+                countSlider.style.width = 0 + 'px';
+                countControlText.innerText = `initial count: ${view.universe.initial_number_orbs.toFixed(0)}`;
+                return null
+            }
+            countSlider.style.width = width + 'px';
+            view.universe.initial_number_orbs = 500 * width/countSliderContainer.offsetWidth; 
+            countControlText.innerText = `initial count: ${view.universe.initial_number_orbs.toFixed(0)}`;
+        }
+        countSliderContainer.onmousedown = e => {
+            x5 = e.pageX;
+            const rect = countSlider.getBoundingClientRect()
+            const width = x5 - rect.x
+            if (width > countSliderContainer.offsetWidth) {
+                view.universe.initial_number_orbs = 500;
+                countSlider.style.width = '100%';
+                countControlText.innerText = `initial count: ${view.universe.initial_number_orbs.toFixed(0)}`;
+                return null
+            }
+            if (width < 1) {
+                view.universe.initial_number_orbs = 2;
+                countSlider.style.width = 0 + 'px';
+                countControlText.innerText = `initial count: ${view.universe.initial_number_orbs.toFixed(0)}`;
+                return null
+            }
+            countSlider.style.width = width + 'px';
+            view.universe.initial_number_orbs = 500 * width/countSliderContainer.offsetWidth; 
+            countControlText.innerText = `initial count: ${view.universe.initial_number_orbs.toFixed(0)}`;
+        }
+        document.addEventListener('mousemove', e => {
+            if (x5) {
+                const rect = countSlider.getBoundingClientRect()
+                const width = e.pageX - rect.x
+                if (width > countSliderContainer.offsetWidth) {
+                    view.universe.initial_number_orbs = 500;
+                    countSlider.style.width = '100%';
+                    countControlText.innerText = `initial count: ${view.universe.initial_number_orbs.toFixed(0)}`;
+                    return null
+                }
+                if (width < 1) {
+                    view.universe.initial_number_orbs = 2;
+                    countSlider.style.width = 0 + 'px';
+                    countControlText.innerText = `initial count: ${view.universe.initial_number_orbs.toFixed(0)}`;
+                    return null
+                }                
+                countSlider.style.width = width + 'px';
+                view.universe.initial_number_orbs = 500 * width/countSliderContainer.offsetWidth; 
+                countControlText.innerText = `initial count: ${view.universe.initial_number_orbs.toFixed(0)}`;
+            }
+        })
+        document.addEventListener('mouseup', e => x5 = 0);
+        let countSlider = document.createElement('div')
+        countSlider.className = 'slider'
+        countSlider.style.width = 100*view.universe.initial_number_orbs/500 + '%'
+        countSliderContainer.appendChild(countSlider);
+        let countControl = document.createElement('div');
+        countControl.className = 'controler';
+        countControl.appendChild(countSliderContainer);
+        countControl.appendChild(countControlText);
+
+        document.ontouchend = e => {
+            x = 0;
+            x2 = 0;
+            x3 = 0;
+            x4 = 0;
+            x5 = 0;
+        }
+
+        document.onmouseup = e => {
+            x = 0;
+            x2 = 0;
+            x3 = 0;
+            x4 = 0;
+            x5 = 0;
+        }
+
+        let controls = document.createElement('div');
+        controls.className = 'controls'
+        controls.appendChild(playControl)
+        controls.appendChild(restartControl)
+        controls.appendChild(originControl)
+        controls.appendChild(starControl)
+        controls.appendChild(gravityControl)
+        controls.appendChild(densityControl)
+        controls.appendChild(spreadControl)
+        controls.appendChild(speedControl)
+        controls.appendChild(countControl)
+
+        let controlsVisible = true;
+        let toggleControls = document.createElement('div')
+        toggleControls.innerText = 'x'
+        toggleControls.className = 'toggle-controls'
+        toggleControls.onclick = e => {
+            if (controlsVisible) {
+                controls.remove();
+                controlsVisible = false;
+                toggleControls.innerText = '⫯⫰⫱'
+            } else {
+                canvasContainer.appendChild(controls)
+                controlsVisible = true
+                toggleControls.innerText = ' x '
+            }
+        }
+
+        canvasContainer.appendChild(toggleControls)
+
 
         let alert = true;
 
-        document.addEventListener('DOMContentLoaded', () => {
-            const canvas = document.getElementById('controls-here')
-            canvas.appendChild(gui.domElement)
-            let sliders = document.getElementsByClassName('slider');
-            for (let i = 0; i < 4; i++) {
+        // document.addEventListener('DOMContentLoaded', () => {
+            // const canvasContainer = document.getElementById('canvas-container')
+            // canvasContainer.appendChild(gui.domElement)
+            canvasContainer.appendChild(controls)
+            let sliders = document.getElementsByClassName('slider-container initial');
+            for (let i = 0; i < sliders.length; i++) {
                 sliders[i].addEventListener('click', () => {
                     if (alert) {
                         window.alert("Remember, you'll need to click 'restart' for initial conditions to take effect.");
@@ -435,26 +939,26 @@
 
                 })
             }
-        });
+        // });
 
-        let f3 = gui.addFolder('Play');
-        f3.add(view, 'play_pause');
-        f3.add(view, 'restart');
-        f3.open();
+        // let f3 = gui.addFolder('Play');
+        // f3.add(view, 'play_pause');
+        // f3.add(view, 'restart');
+        // f3.open();
 
-        let f1 = gui.addFolder('View (you can also zoom by scrolling)');
-        f1.add(view, 'center_on_star');
-        f1.add(view, 'center_on_origin');
-        f1.open();
+        // let f1 = gui.addFolder('View (you can also zoom by scrolling)');
+        // f1.add(view, 'center_on_star');
+        // f1.add(view, 'center_on_origin');
+        // f1.open();
 
-        let f2 = gui.addFolder('Universe');
-        f2.add(view.universe, 'initial_number_orbs', 0, 300);
-        f2.add(view.universe, 'initial_orb_radius', 1, 2);
-        f2.add(view.universe, 'initial_speed', 0, 0.1);
-        f2.add(view.universe, 'initial_spread', 1, 1000);
-        f2.add(view.universe, 'density', 1, 9000);
-        f2.add(view.universe, 'gravity', 0, 10000).step(1);
-        f2.open();
+        // let f2 = gui.addFolder('Universe');
+        // f2.add(view.universe, 'initial_number_orbs', 0, 300);
+        // f2.add(view.universe, 'initial_orb_radius', 1, 2);
+        // f2.add(view.universe, 'initial_speed', 0, 0.1);
+        // f2.add(view.universe, 'initial_spread', 1, 1000);
+        // f2.add(view.universe, 'density', 1, 9000);
+        // f2.add(view.universe, 'gravity', 0, 10000).step(1);
+        // f2.open();
 
         view.animate();
         view.play_pause();

@@ -1,13 +1,24 @@
+html * {
+    box-sizing: border-box;
+    -webkit-touch-callout: none; /* iOS Safari */
+    -webkit-user-select: none; /* Safari */
+    -khtml-user-select: none; /* Konqueror HTML */
+        -moz-user-select: none; /* Old versions of Firefox */
+        -ms-user-select: none; /* Internet Explorer/Edge */
+            user-select: none;
+}
+
 body {
     display: flex;
     flex-direction: column;
     align-items: center;
     color: white;
     background-color: black;
-    background-image: url("background.png");
+    /* background-image: url("background.png"); */
     background-repeat: no-repeat;
     background-size: cover;
     font-family: sans-serif;
+    padding-bottom: 100px;
 }
 
 .top {
@@ -21,9 +32,9 @@ body {
 
 .info {
     display: flex;
+    flex-direction: column;
     align-items: center;
     justify-content: left;
-    margin-bottom: 50px;
 }
 
 header {
@@ -35,12 +46,6 @@ header {
     border-radius: 5px;
     opacity: 0.95;
     /* border-right: 1px solid grey; */
-    margin-right: 50px;
-}
-
-.bar {
-    height: 130px;
-    border-right: 1px solid white;
 }
 
 h1, p {
@@ -51,20 +56,6 @@ h1, p {
 
 .desc {
     font-weight: 600;
-}
-
-section {
-    display: flex;
-    flex-direction: column;
-    align-items: baseline;
-    padding: 10px;
-    padding-left: 20px;
-    padding-right: 20px;
-    margin: 20px;
-    margin-left: 50px;
-    border-radius: 5px;
-    background-color: rgb(20, 20, 20);
-    opacity: 0.8;
 }
 
 .labels {
@@ -88,32 +79,6 @@ section {
     align-items: center;
 }
 
-/* #controls-here {
-    background-color: white;
-    color: black;
-    border-radius: 3px;
-    padding: 10px;
-    font-weight: 600;
-    font-size: 18px;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    position: relative;
-} */
-
-.controls-here {
-    background-color: white;
-    color: black;
-    border-radius: 3px;
-    padding: 10px;
-    font-weight: 600;
-    font-size: 18px;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    position: relative;
-}
-
 .message {
     font-size: 12px;
     font-weight: 400;
@@ -121,27 +86,119 @@ section {
     align-items: center;
 }
 
-.play {
+.controls {
+    position: absolute;
+    top: 10px;
+    left: 40px;
+    display: block;
+}
+
+.controler {
+    float: left;
+    margin: 3px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.button-container {
+    margin-bottom: 3px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 50px;
+    min-height: 50px;
+    border: 1px solid white;
+    border-radius: 100%;
     color: white;
-    margin-right: 5px;
-    margin-left: 5px;
+    font-size: 30px;
+    text-align: center;
     padding: 5px;
-    border-left: 3px solid rgb(255, 0, 119);
-    background-color: rgb(39, 39, 39); 
+    line-height: 1.1;
+}
+
+.button-container:hover {
+    background: white;
+    color: black;
+    cursor: pointer;
+}
+
+.button-container.selected {
+    background-color: blue;
+    color: white;
+}
+
+.button-container * {
+    max-height: 38px;
+    overflow: hidden;
+}
+
+.slider-container {
+    border: 1px solid white;
+    border-radius: 10px;
+    width: 150px;
+    height: 50px
+}
+
+.slider-container:hover {
+    cursor: col-resize;
+}
+
+.slider {
+    background: rgb(172, 172, 172);
+    height: 100%;
+    border-radius: 8px;
 }
 
 .git {
     height: 32px;
     width: 32px;
-    padding-right: 10px;
+}
+
+#canvas-container {
+    position: relative;
+    max-height: fit-content;
+    height: 80vh;
+    width: 90vw;
+}
+
+.toggle-controls {
+    position: absolute;
+    top: 15px;
+    left: 15px;
+    font-size: 35px;
+}
+
+.toggle-controls:hover {
+    cursor: pointer;
+}
+
+.loading {
+    position: absolute;
+    color: white;
+    border: 1px solid white;
+    border-radius: 10px;
+    box-shadow: 0px 0px 15px black;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: fit-content;
+    width: fit-content;
+    min-width: 200px;
+    height: 80px;
+    padding: 20px;
+    margin: auto;
+    background-color: rgb(14,14,14);
+    font-size: 30px;
+    z-index: 5;
 }
 
 canvas {
-    background-color: rgb(20, 20, 20);
+    background-color: black;
     height: 80vh;
     width: 90vw;
     border-radius: 5px;
-    margin-bottom: 100px;
     border: 1px solid white;
     outline: none;
 }
@@ -151,7 +208,7 @@ canvas:active {
 }
 
 canvas.light {
-    background-color: rgb(20, 20, 20);
+    background-color: black;
 }
 
 #gui {

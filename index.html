@@ -30,15 +30,11 @@
 </head>
 <body>
     <div class="top">
-        <div class="info">
-            <header>
-                <h1>Particles</h1>
-                <a href="https://github.com/haydenlinder/particles">
-                    <img src="git.png" class="git">
-                </a>
-                <p class="desc">An orbital physics simulator</p>
-            </header>
-        </div>
+        <h1>Particles</h1>
+        <p class="desc">An orbital physics simulator</p>
+        <a href="https://github.com/haydenlinder/particles">
+            <img src="git.png" class="git">
+        </a>
     </div>
     
     <div id="canvas-container">
@@ -64,18 +60,18 @@
 
         class View { 
             constructor({ distance, universeOptions }) {
+                this.canvas = document.getElementById('canvas');
                 this.universeOptions = universeOptions;
                 this.scene = new THREE.Scene();
                 this.camera = new THREE.PerspectiveCamera(
                     75,
-                    window.innerWidth / window.innerHeight,
+                    this.canvas.offsetWidth / this.canvas.offsetHeight,
                     0.1,
                     300000
                 );
                 this.camera.position.z = distance;
                 this.paused = false;
 
-                this.canvas = document.getElementById('canvas');
                 let ctx = canvas.getContext('webgl');
                 ctx.clearColor(0, 1, 1, 1);
                 this.canvas.width = canvas.clientWidth;
@@ -107,19 +103,21 @@
 
                 this.lastRendered = new Date();
                 this.countFramesPerSecond = 0;
+                window.addEventListener('resize',e => this.onWindowResize(this.renderer));
+                this.onWindowResize = this.onWindowResize.bind(this)
             }
 
             onWindowResize() {
-                this.canvas.width = canvas.clientWidth;
-                this.canvas.height = canvas.clientHeight;
-                this.renderer.setViewport(0, 0, canvas.clientWidth, canvas.clientHeight);
-                // this.camera.aspect = canvas.clientWidth / canvas.clientHeight;
-                this.camera.updateMatrix();
+                // this.canvas.width = canvas.clientWidth;
+                // this.canvas.height = canvas.clientHeight;
+                // this.renderer.setViewport(0, 0, window.clientWidth, this.canvas.clientHeight);
+                this.camera.aspect = this.canvas.offsetWidth / this.canvas.offsetHeight;
+                this.camera.updateProjectionMatrix();
             }
 
             animate() {
                 requestAnimationFrame(this.animate.bind(this));
-                window.addEventListener('resize', this.onWindowResize(), false);
+                // window.addEventListener('resize', this.onWindowResize(), false);
                 this.renderer.clear();
                 this.renderer.clearDepth();
                 this.render();
@@ -233,7 +231,7 @@
                 setTimeout(() => {
                     for (let i = 0; i < this.initial_number_orbs; i++) {
                         let particle = new Particle({
-                            radius: this.initial_orb_radius * (Math.random() + 0.1) ** 10,
+                            radius: this.initial_orb_radius * (Math.random() + 0.1),
                             density: this.density,
                             heat: this.initial_speed,
                             universe: this
@@ -412,9 +410,9 @@
             distance: 500,
             universeOptions: {
                 n: 250,
-                size: 1,
+                size: 1.7,
                 heat: 0.005,
-                spread: 30,
+                spread: 60,
                 density: 5520,
                 gravity: 3000,
             }
@@ -427,7 +425,6 @@
 
         // const gui = new dat.GUI({ autoplace: false, width: 300 });
         // gui.domElement.id = 'gui';
-
 
         let canvasContainer = document.getElementById('canvas-container')
         

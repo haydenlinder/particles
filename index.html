@@ -34,12 +34,10 @@
     <script type="importmap">
         {
             "imports": {
-                "three": "./three.module.js"
+                "three": "./node_modules/three/build/three.js"
             }
         }
     </script>
-    <!-- postprocessing -->
-    <script src="https://cdn.jsdelivr.net/npm/postprocessing@6.13.2/build/postprocessing.min.js"></script>
     <!-- dat.gui -->
     <script 
         src="https://cdnjs.cloudflare.com/ajax/libs/dat-gui/0.7.7/dat.gui.js"
@@ -61,7 +59,6 @@
     <!-- entry -->
     <script type="module">
         import * as THREE from "three";
-        import { OrbitControls } from "https://threejs.org/examples/jsm/controls/OrbitControls.js";
 
         let loading = document.createElement('div');
         loading.className = 'loading';
@@ -105,11 +102,11 @@
                 this.renderer.setViewport(0, 0, canvas.clientWidth, canvas.clientHeight);
                 this.renderer.autoClear = false;
 
-                this.composer = new POSTPROCESSING.EffectComposer(this.renderer);
-                let renderPass = new POSTPROCESSING.RenderPass(this.scene, this.camera);
+                this.composer = new THREE.EffectComposer(this.renderer);
+                let renderPass = new THREE.RenderPass(this.scene, this.camera);
                 this.composer.addPass(renderPass);
 
-                this.controls = new OrbitControls(this.camera, this.renderer.domElement);
+                this.controls = new THREE.OrbitControls(this.camera, this.renderer.domElement);
 
                 this.universe = new Universe({
                     ...universeOptions,
@@ -153,8 +150,8 @@
                 this.universe.populate();
                 this.universe.light = false;
                 if (this.composer) this.composer.dispose();
-                this.composer = new POSTPROCESSING.EffectComposer(this.renderer);
-                let renderPass = new POSTPROCESSING.RenderPass(this.scene, this.camera);
+                this.composer = new THREE.EffectComposer(this.renderer);
+                let renderPass = new THREE.RenderPass(this.scene, this.camera);
                 this.composer.addPass(renderPass);
                 this.center_on_origin()
                 document.getElementById('canvas').classList.remove('light');
@@ -305,14 +302,14 @@
             absorb(p2) {
                 if (p2.sun) {
                     p2.godraysEffect.dispose();
-                    this.godraysEffect = new POSTPROCESSING.GodRaysEffect(this.universe.view.camera, this, {
+                    this.godraysEffect = new THREE.GodRaysEffect(this.universe.view.camera, this, {
                         resolutionScale: 1,
                         density: 1.5,
                         decay: 0.95,
                         weight: 0.1,
                         samples: 100
                     })
-                    let effectPass = new POSTPROCESSING.EffectPass(this.universe.view.camera, this.godraysEffect);
+                    let effectPass = new THREE.EffectPass(this.universe.view.camera, this.godraysEffect);
                     effectPass.renderToScreen = true
 
                     effectPass.uniforms = this.universe.suns
@@ -402,7 +399,7 @@
                         canvas.classList.add('light')
                         this.universe.light = true;
 
-                        this.godraysEffect = new POSTPROCESSING.GodRaysEffect(this.universe.view.camera, this, {
+                        this.godraysEffect = new THREE.GodRaysEffect(this.universe.view.camera, this, {
                             resolutionScale: 1,
                             density: 1.5,
                             decay: 0.95,
@@ -410,7 +407,7 @@
                             samples: 100
                         })
                         this.godraysEffect.bur = true;
-                        let effectPass = new POSTPROCESSING.EffectPass(this.universe.view.camera, this.godraysEffect);
+                        let effectPass = new THREE.EffectPass(this.universe.view.camera, this.godraysEffect);
                         effectPass.renderToScreen = true
 
                         effectPass.uniforms = this.universe.suns
@@ -440,9 +437,6 @@
             distance: options.distance,
             universeOptions: options.universeOptions
         });
-
-        // const gui = new dat.GUI({ autoplace: false, width: 300 });
-        // gui.domElement.id = 'gui';
 
         let canvasContainer = document.getElementById('canvas-container')
         
@@ -948,40 +942,17 @@
         controls.appendChild(starControl)
         let alert = true;
 
-        // document.addEventListener('DOMContentLoaded', () => {
-            // const canvasContainer = document.getElementById('canvas-container')
-            // canvasContainer.appendChild(gui.domElement)
-            canvasContainer.appendChild(controls)
-            let sliders = document.getElementsByClassName('slider-container initial');
-            for (let i = 0; i < sliders.length; i++) {
-                sliders[i].addEventListener('click', () => {
-                    if (alert) {
-                        window.alert("Remember, you'll need to click 'restart' for initial conditions to take effect.");
-                        alert = false;
-                    }
+        canvasContainer.appendChild(controls)
+        let sliders = document.getElementsByClassName('slider-container initial');
+        for (let i = 0; i < sliders.length; i++) {
+            sliders[i].addEventListener('click', () => {
+                if (alert) {
+                    window.alert("Remember, you'll need to click 'restart' for initial conditions to take effect.");
+                    alert = false;
+                }
 
-                })
-            }
-        // });
-
-        // let f3 = gui.addFolder('Play');
-        // f3.add(view, 'play_pause');
-        // f3.add(view, 'restart');
-        // f3.open();
-
-        // let f1 = gui.addFolder('View (you can also zoom by scrolling)');
-        // f1.add(view, 'center_on_star');
-        // f1.add(view, 'center_on_origin');
-        // f1.open();
-
-        // let f2 = gui.addFolder('Universe');
-        // f2.add(view.universe, 'initial_number_orbs', 0, 300);
-        // f2.add(view.universe, 'initial_orb_radius', 1, 2);
-        // f2.add(view.universe, 'initial_speed', 0, 0.1);
-        // f2.add(view.universe, 'initial_spread', 1, 1000);
-        // f2.add(view.universe, 'density', 1, 9000);
-        // f2.add(view.universe, 'gravity', 0, 10000).step(1);
-        // f2.open();
+            })
+        }
 
         view.animate();
         view.play_pause();
